@@ -21,7 +21,7 @@ const DisplayMostPopularAnecdote = ({anecdotes, votes}) => {
       highestVoteNumber = votes[i];
       highestVotePosition = i;
     }
-  };
+  }
 
   if (highestVoteNumber === 0) {
     return (
@@ -29,16 +29,15 @@ const DisplayMostPopularAnecdote = ({anecdotes, votes}) => {
         <h1>Anecdote with most votes</h1>
         <p>All anecdotes have 0 votes</p>
       </div>
-    )
+    );
   } else {
     return (
       < DisplayAnecdote header='Anecdote with most votes' 
                        voteCount={highestVoteNumber} 
                        anecdote={anecdotes[highestVotePosition]}
       />
-    )
+    );
   }
-
 }
 
 const Button = ({text, handleClick}) => {
