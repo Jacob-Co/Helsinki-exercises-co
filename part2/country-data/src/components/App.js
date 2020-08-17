@@ -13,20 +13,18 @@ const DisplayCountryItem = ({country, handleShowButton}) => {
 const DisplaySpecificCountry = ({country}) => {
   const [weather, setWeather] = useState({});
   
-  const hook = () => {
+  const retrieveWeatherData = () => {
     const api_key = process.env.REACT_APP_API_KEY;
     axios
       .get(`http://api.weatherstack.com/current?access_key=${api_key}&query=${country.capital}`)
       .then(res => {
         const data = res.data.current
-        console.log(data);
         setWeather({...data, icon: data.weather_icons[0], description: data.weather_descriptions[0]});
       })
       .catch(e => console.error(e));
   }
 
-  useEffect(hook, []);
-  console.log(weather);
+  useEffect(retrieveWeatherData, []);
   return (
     <>
       <h1>{country.name}</h1>
@@ -93,10 +91,7 @@ const App = () => {
   useEffect(() => {
     axios
       .get('https://restcountries.eu/rest/v2/all')
-      .then(res => {
-        console.log(res.data[0])
-        setCountries(res.data)
-      });
+      .then(res => setCountries(res.data));
   }, [])
   
   return (
