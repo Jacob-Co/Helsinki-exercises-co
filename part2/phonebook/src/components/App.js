@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Persons from './Persons'
-import personService from './../services/persons'
+import Persons from './Persons';
+import personService from './../services/persons';
+import Notification, {clearNotification} from './Notification';
 
 const PersonForm = ({newName, newNumber, handleOnNameChange, handleOnNumberChange, handleFormSubmit}) => {
   return (
@@ -31,6 +32,7 @@ const App = () => {
   const [ newName, setNewName ] = useState('');
   const [ newNumber, setNewNumber ] = useState('');
   const [ filter, setFilter ] = useState('');
+  const [ notificationObj, setNotificationObj] = useState(null);
 
   useEffect(() => {
     personService
@@ -70,50 +72,65 @@ const App = () => {
     }
   }
 
-  const addPerson = (e) => {
+  const modifyNumber = () => {
+    const person = persons.find(person => person.name.toLowerCase() === newName.toLowerCase());
+    const modifiedPerson = {...person, number: newNumber, name: newName};
+
+    personService
+      .edit(person.id, modifiedPerson)
+      .then(returnPerson => {
+        setPersons(persons.map(person => { 
+          return person.name.toLowerCase() === returnPerson.name.toLowerCase()
+            ? returnPerson
+            : person
+        }));
+        setNotificationObj({success: true, message: `Modifed the number of ${returnPerson.name} to ${returnPerson.number}`});
+        setNewName('');
+        setNewNumber('');
+      })
+      .catch(e => {
+        setNotificationObj({success: false, message: `Information of ${newName} has already been removed from the server`});
+        setNewName('');
+        setNewNumber('');
+      });
+  }
+
+  const addPerson = () => {
+    const newPersonObj = { name: newName, number: newNumber };
+    personService
+      .create(newPersonObj)
+      .then(returnPerson => {
+        setPersons(persons.concat(returnPerson));
+        setNotificationObj({success: true, message: `Added ${returnPerson.name}`});
+        setNewName('');
+        setNewNumber('');
+      });
+  }
+
+  const handlePersonFormSubmit = (e) => {
     e.preventDefault();
     const newNumberMessage = `${newName} is already in the phonebook, ` +
-      `do you want to update the number`;
+      `do you want to update the number?`;
 
     if (duplicateName(newName)) {
       if (newNumber === '') return alert(`${newName} is already added to phonebook`);
-      if (window.confirm(newNumberMessage)) {
-        const person = persons.find(person => person.name.toLowerCase() === newName.toLowerCase());
-        const modifiedPerson = {...person, number: newNumber, name: newName};
-
-        personService
-          .edit(person.id, modifiedPerson)
-          .then(returnPerson => {
-            setPersons(persons.map(person => { 
-              return person.name.toLowerCase() === returnPerson.name.toLowerCase()
-                ? returnPerson
-                : person
-            }));
-            setNewName('');
-            setNewNumber('');
-          })
-      };
+      if (window.confirm(newNumberMessage)) modifyNumber();
     } else {
-      const newPersonObj = { name: newName, number: newNumber };
-      personService
-        .create(newPersonObj)
-        .then(returnedPersonObj => {
-          setPersons(persons.concat(returnedPersonObj));
-          setNewName('');
-          setNewNumber('');
-        })
+      addPerson();
     }
+    clearNotification(() => setNotificationObj(null));
   }
 
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification notificationObj={notificationObj} />
       <Filter filter={filter} handleOnChange={handleFilterChange}/>
       <h3>Add a new Contact</h3>
       <PersonForm 
         newName={newName} 
         newNumber={newNumber} 
-        handleFormSubmit={addPerson}
+        handleFormSubmit={handlePersonFormSubmit}
         handleOnNameChange={handleNameChange}
         handleOnNumberChange={handleNumberChange}
       />
