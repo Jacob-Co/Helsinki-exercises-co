@@ -89,7 +89,7 @@ const App = () => {
         setNewNumber('');
       })
       .catch(e => {
-        setNotificationObj({success: false, message: `Information of ${newName} has already been removed from the server`});
+        setNotificationObj({success: false, message: e.response.data.error});
         setNewName('');
         setNewNumber('');
       });
@@ -104,6 +104,9 @@ const App = () => {
         setNotificationObj({success: true, message: `Added ${returnPerson.name}`});
         setNewName('');
         setNewNumber('');
+      })
+      .catch( e => {
+        setNotificationObj({success: false, message: `${e.response.data.error}`});
       });
   }
 
@@ -113,7 +116,6 @@ const App = () => {
       `do you want to update the number?`;
 
     if (duplicateName(newName)) {
-      if (newNumber === '') return alert(`${newName} is already added to phonebook`);
       if (window.confirm(newNumberMessage)) modifyNumber();
     } else {
       addPerson();
